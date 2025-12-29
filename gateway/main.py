@@ -39,6 +39,7 @@ async def get_root():
         """
         )
 
+# NIXERA NEPOLUCHAYETSYA
 
 @app.api_route("/{service}/{path:path}", methods=["GET", "POST"])
 async def gateway_route(service: str, path: str, request: Request):
