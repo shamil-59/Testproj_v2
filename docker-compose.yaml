@@ -1,0 +1,84 @@
+# version: '3.8'
+
+services:
+  # API Gateway
+  gateway:
+    build: ./gateway
+    container_name: api-gateway
+    ports:
+      - "5000:5000"
+    # environment:
+    volumes:
+      - ./gateway:/app:z
+  
+    depends_on:
+      - users
+      - books
+      - pictures
+      - videos
+    networks:
+      - this-net
+    restart: unless-stopped
+
+  # Users Service
+  users:
+    build: ./users
+    container_name: users-service
+    # ports:
+    #   - "5001:5001"
+    environment:
+      - PORT=5001
+    volumes:
+      - ./users:/app:z
+    networks:
+      - this-net
+    restart: unless-stopped
+
+  # Products Service
+  books:
+    build: ./books
+    container_name: books-service
+    # ports:
+    #   - "5002:5002"
+    environment:
+      - PORT=5002
+    volumes:
+      - ./books/src:/app/src:z
+      - ./books/book:/app/book:z
+    networks:
+      - this-net
+    restart: unless-stopped
+
+  # Pictures Service
+  pictures:
+    build: ./pictures
+    container_name: pictures-service
+    # ports:
+    #   - "5003:5003"
+    environment:
+      - PORT=5003
+    volumes: 
+      - ./pictures/src:/app/src:z
+      - ./pictures/pct:/app/pct:z
+    networks:
+      - this-net
+    restart: unless-stopped
+
+  # Videos Service
+  videos:
+    build: ./videos
+    container_name: videos-service
+    # ports:
+    #   - "5004:5004"
+    environment:
+      - PORT=5004
+    volumes:
+      - ./videos:/app:z
+      - ./videos/video:/app/video:z
+    networks:
+      - this-net
+    restart: unless-stopped
+
+networks:
+  this-net:
+    driver: bridge
