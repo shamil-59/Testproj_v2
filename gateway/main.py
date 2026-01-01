@@ -1,5 +1,5 @@
-from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Query, Depends
-from fastapi.responses import JSONResponse, Response, HTMLResponse
+from fastapi import FastAPI, HTTPException, Request, UploadFile, File
+from fastapi.responses import Response, HTMLResponse
 import httpx
 import os
 import aiofiles
