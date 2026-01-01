@@ -31,6 +31,7 @@ async def list_books():
         <hr>
         <form action="/books/upload/" method="post" enctype="multipart/form-data">
         <input name="file" type="file"><button>Upload</button></form></body></html>
+        <hr><hr1><form action="/"><button>TO MAIN PAGE</button></hr1></form>
         """
         )
 
