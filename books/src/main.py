@@ -9,7 +9,6 @@ def view_dir(d="./book"):
     vw_dr = ''
     for i in list_:
         vw_dr += f"<li><a href={i}>{i}</a></li>\n"
-    
     return vw_dr
 
 PORT = os.getenv('PORT')
@@ -18,6 +17,7 @@ if not PORT:
 
 
 app = FastAPI()
+
 
 @app.get("/")
 async def list_books():
@@ -29,10 +29,11 @@ async def list_books():
         {view_dir()}
         </h3>
         <hr>
-        <form action="/upload" method="post" enctype="multipart/form-data">
+        <form action="/books/upload/" method="post" enctype="multipart/form-data">
         <input name="file" type="file"><button>Upload</button></form></body></html>
         """
         )
+
 
 @app.get("/{book_name}")
 async def get_book(book_name: str):
@@ -47,14 +48,14 @@ async def get_book(book_name: str):
         return {"error": "Book not found"}
 
 
-@app.post("/upload")
+@app.post("/upload/")
 async def upload_book(file: UploadFile = File(...)):
     file_name = f"./books/book/{file.filename}"
     async with aiofiles.open(file_name, "wb") as f:
         await f.write(await file.read())
     return HTMLResponse(
         """<h2>File uploaded successfully</h2>
-        <hr><form action="/"><button>Back to BOOKS STORAGE</button></form>"""
+        <hr><form action="/books"><button>BACK TO STORAGE</button></form>"""
         )
 
 

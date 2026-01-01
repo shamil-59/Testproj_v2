@@ -28,7 +28,7 @@ app =FastAPI()
 async def get_users_list():
     return {"health": "Users Service running"}, {"content": users_db}
 
-@app.get("/{user_id}")
+@app.get("/{user_id}/")
 async def get_user(user_id: int):
     return users_db.get(user_id, {"error": "User not found"})
 

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request, UploadFile, File, Query, Depends
+from fastapi import FastAPI, HTTPException, Request, UploadFile, File
 from fastapi.responses import JSONResponse, Response, HTMLResponse
 import httpx
 import os
@@ -21,8 +21,6 @@ SERVICES = {
 app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"])
 
-# @app.api_route("/api/upload")
-
 @app.get("/")
 async def get_root():
     return HTMLResponse(f"""<html><body>
@@ -39,65 +37,58 @@ async def get_root():
         """
         )
 
-# NIXERA NEPOLUCHAYETSYA
 
 @app.api_route("/{service}/{path:path}", methods=["GET", "POST"])
 async def gateway_route(service: str, path: str, request: Request):
-    # if service not in SERVICES:
-    #     raise HTTPException(status_code=404, detail="Service not found")
-    # print(request.headers)
-    if path.strip("/") == "upload" and request.method == 'POST':
-        raise HTTPException(status_code=405, detail="Use /{service}/upload endpoint for file uploads")
+   
+    if service not in SERVICES:
+        raise HTTPException(status_code=404, detail="Service not found")
+    target_url = f"{SERVICES[service]}"
+    
+    async with httpx.AsyncClient() as client:   
+        if request.method == "GET":
+            response = await client.get(f"{target_url}/{path}")
+            if service in 'users':
+                    return response.json()
+            else:
+                return Response(content=response.content)
 
-    target_url = f"{SERVICES[service]}/upload"
+        elif request.method == "POST":
+            content_type = request.headers.get("content-type", "") # check content type
 
-     # Forward the request
-    async with httpx.AsyncClient() as client:
-        body = None
-        if request.method in ['POST', 'PUT']:
             body = await request.body()
-
-            # Forward headers (excluding content-length which will be recalculated)
-            headers = dict(request.headers)
-            headers.pop('content-length', None)
-            headers.pop("host", None)
-            response = await client.request(
-                method=request.method,
-                url=target_url,
+            headers = {k:v for k, v in request.headers.items() if k.lower() not in ['host', 'content-length']}
+            response = await client.post(
+                url=target_url+"/upload/",
                 content=body,
-                params=request.query_params
+                headers=headers
             )
+
             return Response(
             content=response.content,
             status_code=response.status_code,
             headers=dict(response.headers)
         )
-        if request.method in "GET":
-            response = await client.get(f"{SERVICES[service]}/{path}")
-            if service in 'users':
-                    return response.json()
 
-            else:
-                return Response(content=response.content)
-		
 
-@app.post("/{service}/upload")
-async def upload_file(service: str, file: UploadFile = File(...)):
+@app.post("/{service}/upload/")
+async def upload_file(service: str, request: Request, file: UploadFile = File(...), ):
     try:
         async with aiofiles.tempfile.NamedTemporaryFile('wb', delete=False) as tmpf:
-            content =  file.file.read()
+            content =  await file.read()
             await tmpf.write(content)
             tempfile_path = tmpf.name
     
         async with httpx.AsyncClient() as client:
-            files = {'file': (file.filename, open(tempfile_path, "rb"), file.content_type)}
-            response = await client.post(f"{SERVICES[service]}/upload", files=files)
-        return  Response(content=response, status_code=response.status_code)
+            files = {'file': (file.filename, open(tempfile_path, "rb"), file.content_type)}    #open(tempfile_path, "rb")
+            response = await client.post(f"{SERVICES[service]}/upload/", files=files,)
+        return  Response(content=response.content, status_code=response.status_code)
+    
     finally:
         if tempfile_path and os.path.exists(tempfile_path):
             os.unlink(tempfile_path)
         file.file.close()
-
+    
 
 
 if __name__ == "__main__":

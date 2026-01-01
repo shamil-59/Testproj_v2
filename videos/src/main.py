@@ -28,8 +28,9 @@ async def list_videos():
         {view_dir()}
         </h3>
         <hr>
-        <form action="/upload" method="post" enctype="multipart/form-data">
+        <form action="/videos/upload" method="post" enctype="multipart/form-data">
         <input name="file" type="file"><button>Upload</button></form></body></html>
+        <hr><hr1><form action="/"><button>TO MAIN PAGE</button></hr1></form>
         """
         )
 
@@ -49,7 +50,7 @@ async def get_video(item: str):
             "message": "file not found",
 						}
     
-@app.post("/upload")
+@app.post("/upload/")
 async def upload_video(file: UploadFile = File(...)):
     file_name = f"./video/{file.filename}"
     async with aiofiles.open(file_name, "wb") as f:
@@ -60,7 +61,7 @@ async def upload_video(file: UploadFile = File(...)):
             await f.write(chunk)
     return HTMLResponse(
         """<h2>File uploaded successfully</h2>
-        <hr><form action="/"><button>Back to VIDEO STORAGE</button></form>"""
+        <hr><form action="/videos"><button>BACK TO STORAGE</button></form>"""
         )
 
     
